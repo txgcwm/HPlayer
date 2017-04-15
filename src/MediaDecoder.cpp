@@ -1,11 +1,9 @@
 #include "MediaDecoder.h"
 
-// #define TAG "MediaDecoder"
-
 
 
 MediaDecoder::MediaDecoder()
-:hasVideo(false)
+: hasVideo(false)
 , hasAudio(false)
 , videoIndex(-1)
 , audioIndex(-1)
@@ -161,7 +159,8 @@ AVRational MediaDecoder::getVideoTimeBase()
 int MediaDecoder::initCodec()
 {
     int ret = 0;
-    for(int i = 0;i < inputFormatContext->nb_streams;i++) {
+
+    for(int i = 0; i < inputFormatContext->nb_streams; i++) {
         AVStream *inStream = inputFormatContext->streams[i];
         AVCodec *dec = NULL;
         AVCodecContext *dec_ctx = NULL;
@@ -204,7 +203,7 @@ int MediaDecoder::initCodec()
 
 int64_t MediaDecoder::getMsByPts(AVRational time_base, int64_t pts)
 {
-    return av_rescale_q (pts, time_base, AV_TIME_BASE_Q)/1000;
+    return av_rescale_q(pts, time_base, AV_TIME_BASE_Q)/1000;
 }
 
 int64_t MediaDecoder::getCurMs()
@@ -265,8 +264,13 @@ void MediaDecoder::initVideoConvert()
         sws_freeContext(swsVideoCtx);
     }
 
-    av_log(NULL, AV_LOG_ERROR, "videoWidth %d videoHeight %d displayWidth %d displayHeight %d\n", videoWidth, videoHeight, displayWidth, displayHeight);
-    swsVideoCtx = sws_getContext(videoWidth, videoHeight, videoPixFmt, displayWidth, displayHeight, outPixFmt, SWS_BILINEAR, NULL, NULL, NULL);
+    av_log(NULL, AV_LOG_ERROR, "videoWidth %d videoHeight %d displayWidth %d displayHeight %d\n",
+        videoWidth, videoHeight, displayWidth, displayHeight);
+
+    swsVideoCtx = sws_getContext(videoWidth, videoHeight, videoPixFmt, displayWidth, displayHeight,
+                                    outPixFmt, SWS_BILINEAR, NULL, NULL, NULL);
+
+    return;
 }
 
 void MediaDecoder::initAudioConvert()
@@ -293,6 +297,7 @@ void MediaDecoder::initAudioConvert()
         av_log(NULL,AV_LOG_ERROR,  "swr_init error\n");
         return ;
     }
+    
     av_log(NULL, AV_LOG_ERROR, "swr_init right\n");
 }
 
@@ -314,10 +319,10 @@ int MediaDecoder::convertAudioFrame(AVFrame *src, AVFrame *outFrame)
     int dstNbSample = av_rescale_rnd(swr_get_delay(swrAudioCtx, outSampleRate) +
             audioNbSamples, outSampleRate, audioSampleRate, AV_ROUND_UP);
     int ret = av_samples_alloc(outFrame->data,
-            outFrame->linesize,
-            outChannels,
-            dstNbSample,
-            outSampleFormat, 0);
+                                outFrame->linesize,
+                                outChannels,
+                                dstNbSample,
+                                outSampleFormat, 0);
     if(ret < 0) {
         av_log(NULL, AV_LOG_ERROR, "av_samples_alloc error\n");
         return -1;

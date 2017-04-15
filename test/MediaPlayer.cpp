@@ -14,6 +14,7 @@ static void sdl_fill_audio(void *udata, Uint8 *stream, int len)
     if(len > sdlBufferLen) {
         len = sdlBufferLen;
     }
+
     if(len > 0) {
         SDL_memset(stream, 0, len);
         SDL_MixAudio(stream, sdlBuffer + startPos, len, SDL_MIX_MAXVOLUME/2);
@@ -116,6 +117,7 @@ int main(int argc, char **argv)
 
     event.type = REFRESH_EVENT;
     SDL_PushEvent(&event);
+
     while(decoder.getPacket(pkt) >= 0) {
         SDL_WaitEvent(&event);
         if(event.type==SDL_QUIT){
@@ -124,7 +126,7 @@ int main(int argc, char **argv)
 
         if(pkt->stream_index == decoder.getVideoIndex()) {
             mediaPktBuffer->enQueueVideoPacket(pkt);
-            /**
+
             if(decoder.getFrame(pkt, frame) > 0) {
                 AVFrame* outFrame = decoder.convertVideoFrame(frame);
                 av_log(NULL, AV_LOG_DEBUG, "pkt pts %lld\n", pkt->pts);
@@ -151,9 +153,9 @@ int main(int argc, char **argv)
                 printf("%d %d %d\n", outFrame->linesize[0], outFrame->linesize[1], outFrame->linesize[2]);
                 av_frame_free(&outFrame);
                 av_frame_free(&frame);
-            }*/
+            }
         } else if(pkt->stream_index == decoder.getAudioIndex()) {
-            /**
+    
             while(pkt->size > 0) {
                 int readN = 0;
                 int count = 0;
@@ -177,13 +179,15 @@ int main(int argc, char **argv)
                                 }
                             }
                         }
-                        av_log(NULL, AV_LOG_DEBUG, "outFrame linesize %d %d writen %d readN %d pkt->size %d \n", outFrame->linesize[0], outFrame->linesize[1], n, readN, pkt->size);
+                        av_log(NULL, AV_LOG_DEBUG, "outFrame linesize %d %d writen %d readN %d pkt->size %d \n",
+                            outFrame->linesize[0], outFrame->linesize[1], n, readN, pkt->size);
                     }
                     pkt->size -= readN;
                     pkt->data += readN;
                     av_frame_free(&outFrame);
                 }
-            }*/
+            }
+
             mediaPktBuffer->enQueueAudioPacket(pkt);
         }
 
@@ -192,12 +196,13 @@ int main(int argc, char **argv)
         av_free_packet(pkt);
     }
     
-    printf("video count %d audio count %d\n", mediaPktBuffer->getVideoPacketCount(), mediaPktBuffer->getAudioPacketCount());
+    printf("video count %d audio count %d\n",
+            mediaPktBuffer->getVideoPacketCount(), mediaPktBuffer->getAudioPacketCount());
     av_free_packet(pkt);
     event.type = REFRESH_EVENT;
     SDL_PushEvent(&event);
     SDL_Quit();
-    
+
     // fclose(pcmFile);
 
     return 0;

@@ -41,8 +41,9 @@ SDL::~SDL()
 bool SDL::createWindow()
 {
     window = SDL_CreateWindow("A Window",
-            SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, vWidth, vHeight,
-            SDL_WINDOW_OPENGL);
+                                SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED,
+                                vWidth, vHeight,
+                                SDL_WINDOW_OPENGL);
     renderer = SDL_CreateRenderer(window, -1, 0);
 
     return true;

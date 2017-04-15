@@ -10,6 +10,11 @@ link_directories(
 
 
 #################################
+add_executable(TestQueue TestQueue.cpp)
+target_link_libraries(TestQueue player)
+
+
+#################################
 add_executable(MediaPlayer MediaPlayer.cpp)
 target_link_libraries(MediaPlayer player SDL2 avdevice avformat avfilter avcodec swresample swscale avutil X11 xcb xcb-render xcb-shm xcb-xfixes xcb-shape lzma asound pthread dl m z)
 
