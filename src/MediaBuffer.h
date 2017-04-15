@@ -1,8 +1,7 @@
 #ifndef __MEDIABUFFER__H__
 #define __MEDIABUFFER__H__
 
-extern "C"
-{
+extern "C" {
 #include <libavformat/avformat.h>
 }
 

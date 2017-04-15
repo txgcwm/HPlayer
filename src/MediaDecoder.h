@@ -3,8 +3,7 @@
 
 #include <sys/time.h>
 
-extern "C"
-{
+extern "C" {
 #include <libavformat/avformat.h>
 #include <libavdevice/avdevice.h>
 #include <libswscale/swscale.h>

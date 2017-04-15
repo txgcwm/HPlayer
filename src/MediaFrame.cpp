@@ -3,22 +3,31 @@
 
 
 MediaFrame::MediaFrame(AVFrame *frame)
+: m_frame(frame)
+, m_pts(0)
+, m_dts(0)
 {
-    this->frame = frame;
-    // nextFrame = NULL;
+}
+
+MediaFrame::~MediaFrame()
+{
 }
 
 AVFrame* MediaFrame::getFrame()
 {
-    return frame;
+    return m_frame;
 }
 
 void MediaFrame::setPts(int64_t pts)
 {
-    this->pts = pts;
+    m_pts = pts;
+
+    return;
 }
 
 void MediaFrame::setDts(int64_t dts)
 {
-    this->dts = dts;
+    m_dts = dts;
+
+    return;
 }
