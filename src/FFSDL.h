@@ -24,6 +24,8 @@ private:
 class SDL {
 public:
     SDL(Uint32 flags = 0) throw(InitError);
+    virtual ~SDL();
+    
     bool createWindow();
     bool showWindow();
     static void sdlDelay(unsigned int delay);
@@ -43,7 +45,6 @@ public:
     void setAudioCallBack(SDL_AudioCallback callBack);
     bool playAudio();
     bool pauseAudio();
-    virtual ~SDL();
 
 private:
     SDL_Window *window;

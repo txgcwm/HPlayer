@@ -1,6 +1,7 @@
 #include "MediaDecoder.h"
 #include "MediaBuffer.h"
 #include "FFSDL.h"
+
 #define REFRESH_EVENT  (SDL_USEREVENT + 1)
 
 Uint8 sdlBuffer[4096];
@@ -8,7 +9,8 @@ int sdlBufferLen = 0;
 int startPos = 0;
 
 
-static void sdl_fill_audio(void *udata, Uint8 *stream, int len) {
+static void sdl_fill_audio(void *udata, Uint8 *stream, int len)
+{
     if(len > sdlBufferLen) {
         len = sdlBufferLen;
     }
@@ -44,12 +46,14 @@ MediaPlayer::MediaPlayer()
 int MediaPlayer::setDataSource(const char *url)
 {
     decoder->setDataSource(url);
+
     return 1;
 }
 
 int MediaPlayer::prepare()
 {
     decoder->prepare();
+
     return 1;
 }
 
@@ -63,6 +67,7 @@ int main(int argc, char **argv)
 {
     int audioChannels = 2;
     MediaDecoder decoder;
+
     decoder.setDataSource(argv[1]);
     decoder.prepare();
     decoder.setOutVideoPixFmt(AV_PIX_FMT_YUV420P);
@@ -78,7 +83,8 @@ int main(int argc, char **argv)
     AVPacket *pkt = (AVPacket *)av_malloc(sizeof(AVPacket));
     AVFrame *frame = av_frame_alloc();
 
-    FILE *pcmFile = fopen("test.pcm", "wb+");
+    //FILE *pcmFile = fopen("test.pcm", "wb+");
+    FILE *pcmFile = NULL;
 
     SDL sdl(0);
     SDL_Event event;
@@ -115,6 +121,7 @@ int main(int argc, char **argv)
         if(event.type==SDL_QUIT){
             break;
         }
+
         if(pkt->stream_index == decoder.getVideoIndex()) {
             mediaPktBuffer->enQueueVideoPacket(pkt);
             /**
@@ -190,7 +197,8 @@ int main(int argc, char **argv)
     event.type = REFRESH_EVENT;
     SDL_PushEvent(&event);
     SDL_Quit();
-    fclose(pcmFile);
+    
+    // fclose(pcmFile);
 
     return 0;
 }

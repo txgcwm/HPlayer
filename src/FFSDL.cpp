@@ -1,5 +1,7 @@
 #include "FFSDL.h"
 
+
+
 InitError::InitError()
 : exception()
 , msg(SDL_GetError())
@@ -29,6 +31,11 @@ SDL::SDL(Uint32 flags) throw(InitError)
     }
 
     SDL_memset(&wanted_spec, 0, sizeof(wanted_spec));
+}
+
+SDL::~SDL()
+{
+    SDL_Quit();
 }
 
 bool SDL::createWindow()
@@ -164,7 +171,3 @@ void SDL::setBuffer(void* pixels, int pitch)
 }
 
 
-SDL::~SDL()
-{
-    SDL_Quit();
-}

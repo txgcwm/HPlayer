@@ -5,6 +5,7 @@
 LoopBuffer::LoopBuffer(int size)
 {
     maxSize = size;
+    
     if(maxSize > 0) {
         buffer = new unsigned char[maxSize];
     }

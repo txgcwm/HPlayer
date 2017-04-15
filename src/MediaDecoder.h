@@ -1,6 +1,8 @@
 #ifndef __MEDIADECODER__H__
 #define __MEDIADECODER__H__
 
+#include <sys/time.h>
+
 extern "C"
 {
 #include <libavformat/avformat.h>
@@ -9,7 +11,6 @@ extern "C"
 #include <libavcodec/avcodec.h>
 #include <libavutil/imgutils.h>
 #include <libswresample/swresample.h>
-#include <sys/time.h>
 }
 
 
