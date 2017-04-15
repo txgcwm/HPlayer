@@ -101,6 +101,8 @@ int main(int argc, char **argv)
     AVPacket *pkt = (AVPacket *)av_malloc(sizeof(AVPacket));
     AVFrame *frame = av_frame_alloc();
 
+    av_init_packet(pkt);
+
     //FILE *pcmFile = fopen("test.pcm", "wb+");
     FILE *pcmFile = NULL;
 
@@ -128,16 +130,16 @@ int main(int argc, char **argv)
 
     MediaBuffer *mediaPktBuffer = new MediaBuffer();
 
-    if(!sdl.playAudio()) {
-        exit(0);
-    }
+    // if(!sdl.playAudio()) {
+    //     exit(0);
+    // }
 
     event.type = REFRESH_EVENT;
     SDL_PushEvent(&event);
 
     while(decoder.getPacket(pkt) >= 0) {
         SDL_WaitEvent(&event);
-        if(event.type==SDL_QUIT){
+        if(event.type == SDL_QUIT){
             break;
         }
 

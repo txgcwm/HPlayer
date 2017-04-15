@@ -220,26 +220,23 @@ int MediaDecoder::getPacket(AVPacket *pkt)
 
 int MediaDecoder::getFrame(AVPacket *pkt, AVFrame *frame)
 {
-    int ret = 0;
+    int ret = -1;
     int got_frame = 0;
+    int avIndex = pkt->stream_index;
 
-    if(pkt->stream_index == videoIndex) {
-        ret = avcodec_decode_video2(inputFormatContext->streams[pkt->stream_index]->codec, frame, &got_frame, pkt);
+    if(avIndex == videoIndex) {
+        ret = avcodec_decode_video2(inputFormatContext->streams[avIndex]->codec, frame, &got_frame, pkt);
         av_log(NULL, AV_LOG_DEBUG, "get video frame ret %d got_frame %d\n", ret, got_frame);
-        if(got_frame <= 0) {
-            return -1;
-        }
-        return ret;
-    } else if(pkt->stream_index == audioIndex) {
-        ret = avcodec_decode_audio4(inputFormatContext->streams[pkt->stream_index]->codec, frame, &got_frame, pkt);
-        if(got_frame <= 0) {
-            return -1;
-        }
+    } else if(avIndex == audioIndex) {
+        ret = avcodec_decode_audio4(inputFormatContext->streams[avIndex]->codec, frame, &got_frame, pkt);
         av_log(NULL, AV_LOG_DEBUG, "get audio frame ret %d got_frame %d\n", ret, got_frame);
-        return ret;
     }
 
-    return -1;
+    if(got_frame <= 0) {
+        ret = -1;
+    }
+
+    return ret;
 }
 
 void MediaDecoder::initVideoConvert()
@@ -290,7 +287,8 @@ AVFrame* MediaDecoder::convertVideoFrame(AVFrame *src)
     AVFrame *frame = av_frame_alloc();
     int frameSize = av_image_get_buffer_size(outPixFmt, displayWidth, displayHeight, 1);
     unsigned char* frameData = (unsigned char*)av_malloc(frameSize);
-    av_image_fill_arrays(frame->data, frame->linesize, frameData, outPixFmt, displayWidth, displayHeight, 1);
+    av_image_fill_arrays(frame->data, frame->linesize, frameData, outPixFmt,
+                            displayWidth, displayHeight, 1);
     sws_scale(swsVideoCtx, src->data, src->linesize, 0, videoHeight, frame->data, frame->linesize);
 
     return frame;
@@ -312,7 +310,8 @@ int MediaDecoder::convertAudioFrame(AVFrame *src, AVFrame *outFrame)
         return -1;
     }
 
-    int len = swr_convert(swrAudioCtx, outFrame->data, dstNbSample, (const uint8_t**)src->data, src->nb_samples);
+    int len = swr_convert(swrAudioCtx, outFrame->data, dstNbSample,
+                            (const uint8_t**)src->data, src->nb_samples);
     
     return len;
 }
