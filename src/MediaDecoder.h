@@ -67,7 +67,6 @@ private:
     AVPixelFormat videoPixFmt;
     AVPixelFormat outPixFmt;
     SwsContext *swsVideoCtx;
-
     SwrContext *swrAudioCtx;
     int audioSampleRate;
     int audioChannels;
