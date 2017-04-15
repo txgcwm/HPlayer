@@ -1,3 +1,5 @@
+#include <sys/time.h>
+
 #include "MediaDecoder.h"
 #include "MediaBuffer.h"
 #include "FFSDL.h"
@@ -8,6 +10,21 @@ Uint8 sdlBuffer[4096];
 int sdlBufferLen = 0;
 int startPos = 0;
 
+int64_t getCurMs()
+{
+    struct timeval start;
+    gettimeofday(&start, NULL);
+
+    return start.tv_usec/1000 + start.tv_sec*1000;
+}
+
+int64_t getCurUs()
+{
+    struct timeval start;
+    gettimeofday(&start, NULL);
+
+    return start.tv_usec + start.tv_sec*1000*1000;
+}
 
 static void sdl_fill_audio(void *udata, Uint8 *stream, int len)
 {
@@ -134,10 +151,10 @@ int main(int argc, char **argv)
                 //sdl.setBuffer(frame->data[0], frame->linesize[0]);
                 if(lastVideoFrameTime == -1) {
                     sdl.showFrame(0);
-                    lastVideoFrameTime = decoder.getCurMs();
+                    lastVideoFrameTime = getCurMs();
                     lastVideoFramePts = decoder.getMsByPts(decoder.getVideoTimeBase(), pkt->pts);
                 } else {
-                    int64_t curMsTime = decoder.getCurMs();
+                    int64_t curMsTime = getCurMs();
                     int64_t curPtsTime = decoder.getMsByPts(decoder.getVideoTimeBase(), pkt->pts);
                     int sleepTime = (curMsTime - lastVideoFrameTime) - (curPtsTime - lastVideoFramePts);
                     if(sleepTime >= 0) {
@@ -147,7 +164,7 @@ int main(int argc, char **argv)
                         sdl.showFrame(-sleepTime);
                         av_log(NULL, AV_LOG_ERROR, "sleepTime %d\n", -sleepTime);
                     }
-                    lastVideoFrameTime = decoder.getCurMs();
+                    lastVideoFrameTime = getCurMs();
                     lastVideoFramePts = decoder.getMsByPts(decoder.getVideoTimeBase(), pkt->pts);
                 }
                 printf("%d %d %d\n", outFrame->linesize[0], outFrame->linesize[1], outFrame->linesize[2]);

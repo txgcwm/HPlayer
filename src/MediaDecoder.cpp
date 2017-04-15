@@ -206,22 +206,6 @@ int64_t MediaDecoder::getMsByPts(AVRational time_base, int64_t pts)
     return av_rescale_q(pts, time_base, AV_TIME_BASE_Q)/1000;
 }
 
-int64_t MediaDecoder::getCurMs()
-{
-    struct timeval start;
-    gettimeofday(&start, NULL);
-
-    return start.tv_usec/1000 + start.tv_sec*1000;
-}
-
-int64_t MediaDecoder::getCurUs()
-{
-    struct timeval start;
-    gettimeofday(&start, NULL);
-
-    return start.tv_usec + start.tv_sec*1000*1000;
-}
-
 int MediaDecoder::getPacket(AVPacket *pkt)
 {
     int ret = av_read_frame(inputFormatContext, pkt);
@@ -297,7 +281,7 @@ void MediaDecoder::initAudioConvert()
         av_log(NULL,AV_LOG_ERROR,  "swr_init error\n");
         return ;
     }
-    
+
     av_log(NULL, AV_LOG_ERROR, "swr_init right\n");
 }
 

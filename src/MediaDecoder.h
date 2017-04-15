@@ -1,8 +1,6 @@
 #ifndef __MEDIADECODER__H__
 #define __MEDIADECODER__H__
 
-#include <sys/time.h>
-
 extern "C" {
 #include <libavformat/avformat.h>
 #include <libavdevice/avdevice.h>
@@ -51,8 +49,6 @@ public:
     AVSampleFormat getAudioFormat();
 
     static int64_t getMsByPts(AVRational time_base, int64_t pts);
-    static int64_t getCurMs();
-    static int64_t getCurUs();
 
 private:
     bool hasVideo;

@@ -13,12 +13,16 @@ extern "C" {
 class MediaBuffer {
 public:
     MediaBuffer();
+    ~MediaBuffer();
+    
     bool enQueueVideoPacket(AVPacket* packet);
     bool enQueueAudioPacket(AVPacket* packet);
     bool deQueueVideoPacket(AVPacket* &packet);
     bool deQueueAudioPacket(AVPacket* &packet);
     int getVideoPacketCount();
     int getAudioPacketCount();
+
+private:
     void lockAudio();
     void unlockAudio();
     void lockVideo();
