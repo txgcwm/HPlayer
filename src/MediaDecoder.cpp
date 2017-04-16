@@ -118,6 +118,8 @@ void MediaDecoder::setOutVideoPixFmt(AVPixelFormat fmt)
     if(outPixFmt == videoPixFmt) {
         av_log(NULL, AV_LOG_DEBUG, "outPixFmt == videoPixFmt\n");
     }
+
+    return;
 }
 
 void MediaDecoder::setDataSource(const char* url)
@@ -128,6 +130,8 @@ void MediaDecoder::setDataSource(const char* url)
 
     this->url = new char[strlen(url) + 1];
     strcpy(this->url, url);
+
+    return;
 }
 
 int MediaDecoder::prepare()
@@ -163,8 +167,8 @@ int MediaDecoder::initCodec()
     for(int i = 0; i < inputFormatContext->nb_streams; i++) {
         AVStream *inStream = inputFormatContext->streams[i];
         AVCodec *dec = NULL;
-        AVCodecContext *dec_ctx = NULL;
-        dec_ctx = inStream->codec;
+        AVCodecContext *dec_ctx = inStream->codec;
+
         dec = avcodec_find_decoder(dec_ctx->codec_id);
         if(dec == NULL) {
             av_log(NULL, AV_LOG_ERROR, "avcodec_find_decoder find error %d\n", __LINE__);
@@ -280,6 +284,8 @@ void MediaDecoder::initAudioConvert()
     }
 
     av_log(NULL, AV_LOG_ERROR, "swr_init right\n");
+
+    return;
 }
 
 AVFrame* MediaDecoder::convertVideoFrame(AVFrame *src)
@@ -298,8 +304,8 @@ int MediaDecoder::convertAudioFrame(AVFrame *src, AVFrame *outFrame)
 {
     unsigned int audioBufferSize;
     int audioNbSamples = src->nb_samples;
-    int dstNbSample = av_rescale_rnd(swr_get_delay(swrAudioCtx, outSampleRate) +
-            audioNbSamples, outSampleRate, audioSampleRate, AV_ROUND_UP);
+    int dstNbSample = av_rescale_rnd(swr_get_delay(swrAudioCtx, outSampleRate) + audioNbSamples,
+                                        outSampleRate, audioSampleRate, AV_ROUND_UP);
     int ret = av_samples_alloc(outFrame->data,
                                 outFrame->linesize,
                                 outChannels,

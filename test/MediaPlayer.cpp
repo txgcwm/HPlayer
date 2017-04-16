@@ -6,7 +6,7 @@
 
 #define REFRESH_EVENT  (SDL_USEREVENT + 1)
 
-Uint8 sdlBuffer[4096];
+Uint8 sdlBuffer[8192];
 int sdlBufferLen = 0;
 int startPos = 0;
 
@@ -28,6 +28,8 @@ int64_t getCurUs()
 
 static void sdl_fill_audio(void *udata, Uint8 *stream, int len)
 {
+    av_log(NULL, AV_LOG_INFO, "audio len: %d!\n", len);
+
     if(len > sdlBufferLen) {
         len = sdlBufferLen;
     }
@@ -36,49 +38,9 @@ static void sdl_fill_audio(void *udata, Uint8 *stream, int len)
         SDL_memset(stream, 0, len);
         SDL_MixAudio(stream, sdlBuffer + startPos, len, SDL_MIX_MAXVOLUME/2);
         sdlBufferLen -= len;
-    } else {
-        av_log(NULL, AV_LOG_ERROR, "there is no audio!\n");
     }
-}
 
-class MediaPlayer {
-private:
-    MediaBuffer *mediaPktBuffer;
-    MediaDecoder *decoder;
-    const int audioChannels = 2;
-
-public:
-    MediaPlayer();
-    int setDataSource(const char* url);
-    int prepare();
-    void setDisplayParam(int w, int h);
-    static void sdlFillAudio(void *userdata, Uint8 *stream, int len);
-};
-
-MediaPlayer::MediaPlayer()
-{
-    mediaPktBuffer = new MediaBuffer();
-    decoder = new MediaDecoder();
-}
-
-int MediaPlayer::setDataSource(const char *url)
-{
-    decoder->setDataSource(url);
-
-    return 1;
-}
-
-int MediaPlayer::prepare()
-{
-    decoder->prepare();
-
-    return 1;
-}
-
-void MediaPlayer::setDisplayParam(int w, int h)
-{
-    decoder->setDisPlayWidth(w);
-    decoder->setDisPlayHeight(h);
+    return;
 }
 
 int main(int argc, char **argv)
@@ -118,7 +80,7 @@ int main(int argc, char **argv)
     sdl.setAudioChannels(audioChannels);
     sdl.setAudioFormat(AUDIO_S16SYS);
     sdl.setAudioSilence(0);
-    sdl.setAudioSamples(4096);
+    sdl.setAudioSamples(8192);
     sdl.setAudioCallBack(sdl_fill_audio);
 
     MediaBuffer *mediaPktBuffer = new MediaBuffer();
@@ -139,9 +101,9 @@ int main(int argc, char **argv)
         if(pkt->stream_index == decoder.getVideoIndex()) {
             mediaPktBuffer->enQueueVideoPacket(pkt);
 
-            /*if(decoder.getFrame(pkt, frame) > 0) {
+            if(decoder.getFrame(pkt, frame) > 0) {
                 AVFrame* outFrame = decoder.convertVideoFrame(frame);
-                av_log(NULL, AV_LOG_DEBUG, "pkt pts %lld\n", pkt->pts);
+                av_log(NULL, AV_LOG_DEBUG, "pkt pts %ld\n", pkt->pts);
                 sdl.setBuffer(outFrame->data[0], outFrame->linesize[0]);
                 //sdl.setBuffer(frame->data[0], frame->linesize[0]);
                 if(lastVideoFrameTime == -1) {
@@ -165,7 +127,7 @@ int main(int argc, char **argv)
 
                 printf("%d %d %d\n", outFrame->linesize[0], outFrame->linesize[1], outFrame->linesize[2]);
                 av_frame_free(&outFrame);
-            }*/
+            }
         } else if(pkt->stream_index == decoder.getAudioIndex()) {
             mediaPktBuffer->enQueueAudioPacket(pkt);
 
@@ -177,16 +139,17 @@ int main(int argc, char **argv)
                     AVFrame *outFrame = av_frame_alloc();
                     int len = decoder.convertAudioFrame(frame, outFrame);
 
-                    sdl.setBuffer(outFrame->data[0], outFrame->linesize[0]);
+                    // sdl.setBuffer(outFrame->data[0], outFrame->linesize[0]);
 
                     int audioLen = outFrame->linesize[0];
                     Uint8 *audioBuffer = outFrame->data[0];
+
                     while(audioLen > 0) {
                         if(sdlBufferLen <= 0) {
-                            if(audioLen >= 4096) {
-                                memcpy(sdlBuffer, audioBuffer, 4096);
-                                audioLen -= 4096;
-                                sdlBufferLen = 4096;
+                            if(audioLen >= 8192) {
+                                memcpy(sdlBuffer, audioBuffer, 8192);
+                                audioLen -= 8192;
+                                sdlBufferLen = 8192;
                             } else {
                                 memcpy(sdlBuffer, audioBuffer, audioLen);
                                 sdlBufferLen = audioLen;
@@ -195,7 +158,7 @@ int main(int argc, char **argv)
                         }
                     }
 
-                    av_log(NULL, AV_LOG_DEBUG, "outFrame linesize %d %d readN %d pkt->size %d\n",
+                    av_log(NULL, AV_LOG_DEBUG, "outFrame linesize(%d, %d) readN: %d pkt->size: %d\n",
                             outFrame->linesize[0], outFrame->linesize[1], readN, pkt->size);
 
                     pkt->size -= readN;
@@ -208,14 +171,16 @@ int main(int argc, char **argv)
         event.type = REFRESH_EVENT;
         SDL_PushEvent(&event);
 
-        av_free_packet(pkt);
+        // av_free_packet(pkt);
+        av_packet_unref(pkt);
     }
     
     printf("video count %d audio count %d\n",
             mediaPktBuffer->getVideoPacketCount(), mediaPktBuffer->getAudioPacketCount());
 
     av_frame_free(&frame);
-    av_free_packet(pkt);
+    // av_free_packet(pkt);
+    av_packet_unref(pkt);
 
     event.type = REFRESH_EVENT;
     SDL_PushEvent(&event);
