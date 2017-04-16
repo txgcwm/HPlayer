@@ -42,11 +42,6 @@ public:
     bool playAudio();
     bool pauseAudio();
 
-    // bool showWindow();
-    // static void sdlDelay(unsigned int delay);
-    // void createTextrue();
-    // void setVideoHeight(int width);
-
 private:
     SDL_Window *window;
     SDL_Renderer *renderer;

@@ -40,15 +40,30 @@ SDL::~SDL()
 
 bool SDL::createWindow()
 {
+    SDL_Log("width(%d), height(%d)\n", vWidth, vHeight);
+
     window = SDL_CreateWindow("HPlayer",
                                 SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED,
                                 vWidth, vHeight,
-                                SDL_WINDOW_OPENGL);
+                                SDL_WINDOW_SHOWN | SDL_WINDOW_RESIZABLE); // SDL_WINDOW_OPENGL
+    if(window == NULL) {
+        SDL_Log("create window error: %s!\n", SDL_GetError());
+        return false;
+    }
+
     renderer = SDL_CreateRenderer(window, -1, 0);
+    if(renderer == NULL) {
+        SDL_Log("create renderer error: %s!\n", SDL_GetError());
+        return false;
+    }
 
     initRect();
 
     texture = SDL_CreateTexture(renderer, vFormat, SDL_TEXTUREACCESS_STREAMING, vWidth, vHeight);
+    if(texture == NULL) {
+        SDL_Log("create texture error: %s!\n", SDL_GetError());
+        return false;
+    }
 
     SDL_ShowWindow(window);
 
@@ -57,9 +72,19 @@ bool SDL::createWindow()
 
 void SDL::showFrame(int mSec)
 {
-    SDL_UpdateTexture(texture, NULL, vPixels, vPitch);
+    int ret = -1;
+
+    ret = SDL_UpdateTexture(texture, NULL, vPixels, vPitch);
+    if(ret < 0) {
+        SDL_Log("update texture error!\n");
+    }
+
     SDL_RenderClear(renderer);
-    SDL_RenderCopy(renderer, texture, NULL, NULL);
+    ret = SDL_RenderCopy(renderer, texture, NULL, NULL);
+    if(ret < 0) {
+        SDL_Log("render copy error!\n");
+    }
+
     SDL_RenderPresent(renderer);
     SDL_Delay(mSec); // ms
 
@@ -115,7 +140,6 @@ bool SDL::pauseAudio()
 
 void SDL::setAudioFreq(int freq)
 {
-    printf("*************************** freq: %d\n", freq);
     wanted_spec.freq = freq;
 }
 
