@@ -158,8 +158,9 @@ int main(int argc, char **argv)
                         }
                     }
 
-                    av_log(NULL, AV_LOG_DEBUG, "outFrame linesize(%d, %d) readN: %d pkt->size: %d\n",
-                            outFrame->linesize[0], outFrame->linesize[1], readN, pkt->size);
+                    av_log(NULL, AV_LOG_DEBUG, "(%d, %d), outFrame linesize(%d, %d) readN: %d pkt->size: %d\n",
+                            frame->linesize[0], frame->linesize[1], outFrame->linesize[0], outFrame->linesize[1],
+                            readN, pkt->size);
 
                     pkt->size -= readN;
                     pkt->data += readN;
@@ -190,3 +191,4 @@ int main(int argc, char **argv)
 }
 
 
+// http://blog.csdn.net/leixiaohua1020/article/details/10528443

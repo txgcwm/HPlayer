@@ -115,6 +115,7 @@ void MediaDecoder::setOutAudioLayout(uint64_t layout)
 void MediaDecoder::setOutVideoPixFmt(AVPixelFormat fmt)
 {
     outPixFmt = fmt;
+
     if(outPixFmt == videoPixFmt) {
         av_log(NULL, AV_LOG_DEBUG, "outPixFmt == videoPixFmt\n");
     }
@@ -302,7 +303,7 @@ AVFrame* MediaDecoder::convertVideoFrame(AVFrame *src)
 
 int MediaDecoder::convertAudioFrame(AVFrame *src, AVFrame *outFrame)
 {
-    unsigned int audioBufferSize;
+    // unsigned int audioBufferSize;
     int audioNbSamples = src->nb_samples;
     int dstNbSample = av_rescale_rnd(swr_get_delay(swrAudioCtx, outSampleRate) + audioNbSamples,
                                         outSampleRate, audioSampleRate, AV_ROUND_UP);
