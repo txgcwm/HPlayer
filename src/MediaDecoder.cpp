@@ -134,13 +134,13 @@ int MediaDecoder::prepare()
 {
     int ret = avformat_open_input(&inputFormatContext, url, NULL, NULL);
     if(ret < 0) {
-        av_log(NULL, AV_LOG_ERROR, "avformat_open_input error!");
+        av_log(NULL, AV_LOG_ERROR, "avformat_open_input error!\n");
         return ret;
     }
 
     ret = avformat_find_stream_info(inputFormatContext, NULL);
     if(ret < 0) {
-        av_log(NULL, AV_LOG_ERROR, "avformat_find_stream_info error!");
+        av_log(NULL, AV_LOG_ERROR, "avformat_find_stream_info error!\n");
         return -1;
     }
 
@@ -212,7 +212,7 @@ int MediaDecoder::getPacket(AVPacket *pkt)
     if(ret < 0) {
         char errstr[AV_ERROR_MAX_STRING_SIZE];
         av_make_error_string(errstr, AV_ERROR_MAX_STRING_SIZE, ret);
-        av_log(NULL, AV_LOG_ERROR, "av_read_frame error %s", errstr);
+        av_log(NULL, AV_LOG_ERROR, "av_read_frame error %s\n", errstr);
     }
 
     return ret;

@@ -106,26 +106,25 @@ int main(int argc, char **argv)
     //FILE *pcmFile = fopen("test.pcm", "wb+");
     FILE *pcmFile = NULL;
 
-    SDL sdl(0);
+    SDL sdl(SDL_INIT_VIDEO | SDL_INIT_AUDIO | SDL_INIT_TIMER);
     SDL_Event event;
     //SDL_LogSetAllPriority(SDL_LOG_PRIORITY_VERBOSE);
 
     int64_t lastVideoFrameTime = -1;
     int64_t lastVideoFramePts = -1;
 
-    sdl.setVideoWidth(decoder.getVideoWidth());
-    sdl.setVideoHeight(decoder.getVideoHeight());
+    sdl.setVideoWidthHeight(decoder.getVideoWidth(), decoder.getVideoHeight());
     sdl.setVideoPixFormat(SDL_PIXELFORMAT_IYUV);
     sdl.createWindow();
-    sdl.initRect();
-    sdl.createTextrue();
-    sdl.showWindow();
+    // sdl.initRect();
+    // sdl.createTextrue();
+    // sdl.showWindow();
 
     sdl.setAudioFreq(decoder.getSampleRate());
     sdl.setAudioChannels(audioChannels);
     sdl.setAudioFormat(AUDIO_S16SYS);
     sdl.setAudioSilence(0);
-    sdl.setAudioSamples(4096);
+    sdl.setAudioSamples(1024); //(4096);
     sdl.setAudioCallBack(sdl_fill_audio);
 
     MediaBuffer *mediaPktBuffer = new MediaBuffer();
@@ -160,18 +159,19 @@ int main(int argc, char **argv)
                     int64_t curPtsTime = decoder.getMsByPts(decoder.getVideoTimeBase(), pkt->pts);
                     int sleepTime = (curMsTime - lastVideoFrameTime) - (curPtsTime - lastVideoFramePts);
                     if(sleepTime >= 0) {
-                        av_log(NULL, AV_LOG_ERROR, "sleepTime %d\n", sleepTime);
+                        av_log(NULL, AV_LOG_ERROR, "sleepTime %d ms\n", sleepTime);
                         sdl.showFrame(sleepTime);
                     } else {
                         sdl.showFrame(-sleepTime);
-                        av_log(NULL, AV_LOG_ERROR, "sleepTime %d\n", -sleepTime);
+                        av_log(NULL, AV_LOG_ERROR, "sleepTime %d ms\n", -sleepTime);
                     }
                     lastVideoFrameTime = getCurMs();
                     lastVideoFramePts = decoder.getMsByPts(decoder.getVideoTimeBase(), pkt->pts);
                 }
+
                 printf("%d %d %d\n", outFrame->linesize[0], outFrame->linesize[1], outFrame->linesize[2]);
                 av_frame_free(&outFrame);
-                av_frame_free(&frame);
+                // av_frame_free(&frame);
             }
         } else if(pkt->stream_index == decoder.getAudioIndex()) {
     
@@ -181,6 +181,9 @@ int main(int argc, char **argv)
                 if((readN = decoder.getFrame(pkt, frame)) > 0) {
                     AVFrame *outFrame = av_frame_alloc();
                     int len = decoder.convertAudioFrame(frame, outFrame);
+
+                    sdl.setBuffer(outFrame->data[0], outFrame->linesize[0]);
+
                     if(pcmFile) {
                         int n = fwrite(outFrame->data[0], 1, outFrame->linesize[0], pcmFile);
                         int audioLen = outFrame->linesize[0];
@@ -212,12 +215,16 @@ int main(int argc, char **argv)
 
         event.type = REFRESH_EVENT;
         SDL_PushEvent(&event);
+
         av_free_packet(pkt);
     }
     
     printf("video count %d audio count %d\n",
             mediaPktBuffer->getVideoPacketCount(), mediaPktBuffer->getAudioPacketCount());
+
+    av_frame_free(&frame);
     av_free_packet(pkt);
+
     event.type = REFRESH_EVENT;
     SDL_PushEvent(&event);
     SDL_Quit();

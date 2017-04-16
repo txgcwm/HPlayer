@@ -40,22 +40,16 @@ SDL::~SDL()
 
 bool SDL::createWindow()
 {
-    window = SDL_CreateWindow("A Window",
+    window = SDL_CreateWindow("HPlayer",
                                 SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED,
                                 vWidth, vHeight,
                                 SDL_WINDOW_OPENGL);
     renderer = SDL_CreateRenderer(window, -1, 0);
 
-    return true;
-}
+    initRect();
 
-void SDL::createTextrue()
-{
     texture = SDL_CreateTexture(renderer, vFormat, SDL_TEXTUREACCESS_STREAMING, vWidth, vHeight);
-}
 
-bool SDL::showWindow()
-{
     SDL_ShowWindow(window);
 
     return true;
@@ -67,22 +61,19 @@ void SDL::showFrame(int mSec)
     SDL_RenderClear(renderer);
     SDL_RenderCopy(renderer, texture, NULL, NULL);
     SDL_RenderPresent(renderer);
-    sdlDelay(mSec);
+    SDL_Delay(mSec); // ms
+
+    return;
 }
 
-void SDL::sdlDelay(unsigned int delay)
-{
-    SDL_Delay(delay);
-}
-
-void SDL::setVideoWidth(int width)
+void SDL::setVideoWidthHeight(int width, int height)
 {
     vWidth = width;
-}
-
-void SDL::setVideoHeight(int height)
-{
     vHeight = height;
+
+    SDL_Log("width(%d), height(%d)\n", width, height);
+
+    return;
 }
 
 void SDL::setVideoPixFormat(Uint32 format)
@@ -94,7 +85,7 @@ bool SDL::playAudio()
 {
     if(!isAudioOpen) {
         if(SDL_OpenAudio(&wanted_spec, NULL) < 0) {
-            SDL_Log("Failed to open audio: %s", SDL_GetError());
+            SDL_Log("Failed to open audio: %s\n", SDL_GetError());
             return false;
         }
 
@@ -124,6 +115,7 @@ bool SDL::pauseAudio()
 
 void SDL::setAudioFreq(int freq)
 {
+    printf("*************************** freq: %d\n", freq);
     wanted_spec.freq = freq;
 }
 

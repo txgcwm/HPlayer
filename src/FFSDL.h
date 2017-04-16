@@ -27,11 +27,7 @@ public:
     virtual ~SDL();
     
     bool createWindow();
-    bool showWindow();
-    static void sdlDelay(unsigned int delay);
-    void createTextrue();
-    void setVideoWidth(int height);
-    void setVideoHeight(int width);
+    void setVideoWidthHeight(int width, int height);
     void setVideoPixFormat(Uint32 format);
     void initRect();
     void setBuffer(void* pixels, int pitch);
@@ -45,6 +41,11 @@ public:
     void setAudioCallBack(SDL_AudioCallback callBack);
     bool playAudio();
     bool pauseAudio();
+
+    // bool showWindow();
+    // static void sdlDelay(unsigned int delay);
+    // void createTextrue();
+    // void setVideoHeight(int width);
 
 private:
     SDL_Window *window;
