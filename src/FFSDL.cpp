@@ -108,6 +108,9 @@ void SDL::setVideoPixFormat(Uint32 format)
 
 bool SDL::playAudio()
 {
+    SDL_Log("freq(%d), format(%d), channels(%d), silence(%d), samples(%d)\n",
+        wanted_spec.freq, wanted_spec.format, wanted_spec.channels, wanted_spec.silence, wanted_spec.samples);
+
     if(!isAudioOpen) {
         if(SDL_OpenAudio(&wanted_spec, NULL) < 0) {
             SDL_Log("Failed to open audio: %s\n", SDL_GetError());

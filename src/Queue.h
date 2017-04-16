@@ -37,6 +37,7 @@ bool Queue<T>::push(QueueNode<T> *item)
         head = tail = item;
         tail->setNext(NULL);
         size = 1;
+
         return true;
     }
 
@@ -45,6 +46,7 @@ bool Queue<T>::push(QueueNode<T> *item)
         item->setNext(NULL);
         tail = item;
         size++;
+
         return true;
     }
 

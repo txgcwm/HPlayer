@@ -103,9 +103,6 @@ int main(int argc, char **argv)
 
     av_init_packet(pkt);
 
-    //FILE *pcmFile = fopen("test.pcm", "wb+");
-    FILE *pcmFile = NULL;
-
     SDL sdl(SDL_INIT_VIDEO | SDL_INIT_AUDIO | SDL_INIT_TIMER);
     SDL_Event event;
     //SDL_LogSetAllPriority(SDL_LOG_PRIORITY_VERBOSE);
@@ -116,22 +113,19 @@ int main(int argc, char **argv)
     sdl.setVideoWidthHeight(decoder.getVideoWidth(), decoder.getVideoHeight());
     sdl.setVideoPixFormat(SDL_PIXELFORMAT_IYUV);
     sdl.createWindow();
-    // sdl.initRect();
-    // sdl.createTextrue();
-    // sdl.showWindow();
 
     sdl.setAudioFreq(decoder.getSampleRate());
     sdl.setAudioChannels(audioChannels);
     sdl.setAudioFormat(AUDIO_S16SYS);
     sdl.setAudioSilence(0);
-    sdl.setAudioSamples(1024); //(4096);
+    sdl.setAudioSamples(4096);
     sdl.setAudioCallBack(sdl_fill_audio);
 
     MediaBuffer *mediaPktBuffer = new MediaBuffer();
 
-    // if(!sdl.playAudio()) {
-    //     exit(0);
-    // }
+    if(!sdl.playAudio()) {
+        exit(0);
+    }
 
     event.type = REFRESH_EVENT;
     SDL_PushEvent(&event);
@@ -145,7 +139,7 @@ int main(int argc, char **argv)
         if(pkt->stream_index == decoder.getVideoIndex()) {
             mediaPktBuffer->enQueueVideoPacket(pkt);
 
-            if(decoder.getFrame(pkt, frame) > 0) {
+            /*if(decoder.getFrame(pkt, frame) > 0) {
                 AVFrame* outFrame = decoder.convertVideoFrame(frame);
                 av_log(NULL, AV_LOG_DEBUG, "pkt pts %lld\n", pkt->pts);
                 sdl.setBuffer(outFrame->data[0], outFrame->linesize[0]);
@@ -171,46 +165,44 @@ int main(int argc, char **argv)
 
                 printf("%d %d %d\n", outFrame->linesize[0], outFrame->linesize[1], outFrame->linesize[2]);
                 av_frame_free(&outFrame);
-                // av_frame_free(&frame);
-            }
+            }*/
         } else if(pkt->stream_index == decoder.getAudioIndex()) {
-    
+            mediaPktBuffer->enQueueAudioPacket(pkt);
+
             while(pkt->size > 0) {
                 int readN = 0;
                 int count = 0;
+
                 if((readN = decoder.getFrame(pkt, frame)) > 0) {
                     AVFrame *outFrame = av_frame_alloc();
                     int len = decoder.convertAudioFrame(frame, outFrame);
 
                     sdl.setBuffer(outFrame->data[0], outFrame->linesize[0]);
 
-                    if(pcmFile) {
-                        int n = fwrite(outFrame->data[0], 1, outFrame->linesize[0], pcmFile);
-                        int audioLen = outFrame->linesize[0];
-                        Uint8 *audioBuffer = outFrame->data[0];
-                        while(audioLen > 0) {
-                            if(sdlBufferLen <= 0) {
-                                if(audioLen >= 4096) {
-                                    memcpy(sdlBuffer, audioBuffer, 4096);
-                                    audioLen -= 4096;
-                                    sdlBufferLen = 4096;
-                                } else {
-                                    memcpy(sdlBuffer, audioBuffer, audioLen);
-                                    sdlBufferLen = audioLen;
-                                    audioLen = 0;
-                                }
+                    int audioLen = outFrame->linesize[0];
+                    Uint8 *audioBuffer = outFrame->data[0];
+                    while(audioLen > 0) {
+                        if(sdlBufferLen <= 0) {
+                            if(audioLen >= 4096) {
+                                memcpy(sdlBuffer, audioBuffer, 4096);
+                                audioLen -= 4096;
+                                sdlBufferLen = 4096;
+                            } else {
+                                memcpy(sdlBuffer, audioBuffer, audioLen);
+                                sdlBufferLen = audioLen;
+                                audioLen = 0;
                             }
                         }
-                        av_log(NULL, AV_LOG_DEBUG, "outFrame linesize %d %d writen %d readN %d pkt->size %d \n",
-                            outFrame->linesize[0], outFrame->linesize[1], n, readN, pkt->size);
                     }
+
+                    av_log(NULL, AV_LOG_DEBUG, "outFrame linesize %d %d readN %d pkt->size %d\n",
+                            outFrame->linesize[0], outFrame->linesize[1], readN, pkt->size);
+
                     pkt->size -= readN;
                     pkt->data += readN;
                     av_frame_free(&outFrame);
                 }
             }
-
-            mediaPktBuffer->enQueueAudioPacket(pkt);
         }
 
         event.type = REFRESH_EVENT;
@@ -228,8 +220,6 @@ int main(int argc, char **argv)
     event.type = REFRESH_EVENT;
     SDL_PushEvent(&event);
     SDL_Quit();
-
-    // fclose(pcmFile);
 
     return 0;
 }
