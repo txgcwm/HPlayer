@@ -6,7 +6,7 @@
 
 #define REFRESH_EVENT  (SDL_USEREVENT + 1)
 
-Uint8 sdlBuffer[8192];
+Uint8 sdlBuffer[8192 * 2];
 int sdlBufferLen = 0;
 int startPos = 0;
 
@@ -28,17 +28,17 @@ int64_t getCurUs()
 
 static void sdl_fill_audio(void *udata, Uint8 *stream, int len)
 {
-    av_log(NULL, AV_LOG_INFO, "audio len: %d!\n", len);
+    av_log(NULL, AV_LOG_INFO, "audio len: %d, want: %d!\n", sdlBufferLen, len);
 
-    if(len > sdlBufferLen) {
-        len = sdlBufferLen;
+    if(sdlBufferLen == 0) {
+        return;
     }
 
-    if(len > 0) {
-        SDL_memset(stream, 0, len);
-        SDL_MixAudio(stream, sdlBuffer + startPos, len, SDL_MIX_MAXVOLUME/2);
-        sdlBufferLen -= len;
-    }
+    len = (len > sdlBufferLen) ? sdlBufferLen:len;
+
+    SDL_memset(stream, 0, len);
+    SDL_MixAudio(stream, sdlBuffer + startPos, len, SDL_MIX_MAXVOLUME/2);
+    sdlBufferLen -= len;
 
     return;
 }
@@ -80,7 +80,7 @@ int main(int argc, char **argv)
     sdl.setAudioChannels(audioChannels);
     sdl.setAudioFormat(AUDIO_S16SYS);
     sdl.setAudioSilence(0);
-    sdl.setAudioSamples(8192);
+    sdl.setAudioSamples(4096);
     sdl.setAudioCallBack(sdl_fill_audio);
 
     MediaBuffer *mediaPktBuffer = new MediaBuffer();
@@ -101,7 +101,7 @@ int main(int argc, char **argv)
         if(pkt->stream_index == decoder.getVideoIndex()) {
             mediaPktBuffer->enQueueVideoPacket(pkt);
 
-            if(decoder.getFrame(pkt, frame) > 0) {
+            /*if(decoder.getFrame(pkt, frame) > 0) {
                 AVFrame* outFrame = decoder.convertVideoFrame(frame);
                 av_log(NULL, AV_LOG_DEBUG, "pkt pts %ld\n", pkt->pts);
                 sdl.setBuffer(outFrame->data[0], outFrame->linesize[0]);
@@ -127,7 +127,7 @@ int main(int argc, char **argv)
 
                 printf("%d %d %d\n", outFrame->linesize[0], outFrame->linesize[1], outFrame->linesize[2]);
                 av_frame_free(&outFrame);
-            }
+            }*/
         } else if(pkt->stream_index == decoder.getAudioIndex()) {
             mediaPktBuffer->enQueueAudioPacket(pkt);
 
@@ -146,10 +146,10 @@ int main(int argc, char **argv)
 
                     while(audioLen > 0) {
                         if(sdlBufferLen <= 0) {
-                            if(audioLen >= 8192) {
-                                memcpy(sdlBuffer, audioBuffer, 8192);
-                                audioLen -= 8192;
-                                sdlBufferLen = 8192;
+                            if(audioLen >= 8192 * 2) {
+                                memcpy(sdlBuffer, audioBuffer, 8192 * 2);
+                                audioLen -= 8192 * 2;
+                                sdlBufferLen = 8192 * 2;
                             } else {
                                 memcpy(sdlBuffer, audioBuffer, audioLen);
                                 sdlBufferLen = audioLen;
