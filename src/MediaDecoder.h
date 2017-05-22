@@ -10,6 +10,8 @@ extern "C" {
 #include <libswresample/swresample.h>
 }
 
+#include <string>
+
 
 
 class CMediaDecoder
@@ -17,8 +19,7 @@ class CMediaDecoder
 public:
     CMediaDecoder();
 
-    void setDataSource(const char *url);
-    int prepare();
+    int prepare(const char* url);
     int getPacket(AVPacket *pkt);
     int getFrame(AVPacket *pkt, AVFrame *frame);
 
@@ -63,7 +64,7 @@ private:
     int outNbSamples;
     uint64_t outLayout;
 
-    char* url;
+    std::string m_url;
     AVFormatContext *inputFormatContext;
 };
 

@@ -41,8 +41,7 @@ int main(int argc, char **argv)
 {
     CMediaDecoder decoder;
 
-    decoder.setDataSource(argv[1]);
-    decoder.prepare();
+    decoder.prepare(argv[1]);
 
     AVPacket *pkt = (AVPacket *)av_malloc(sizeof(AVPacket));
     AVFrame *frame = av_frame_alloc();

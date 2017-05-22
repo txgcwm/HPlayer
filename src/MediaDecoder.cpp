@@ -16,7 +16,7 @@ CMediaDecoder::CMediaDecoder()
 , outPixFmt(AV_PIX_FMT_YUV420P)
 , swsVideoCtx(NULL)
 , swrAudioCtx(NULL)
-, url(NULL)
+, m_url("")
 , outChannels(2)
 , outSampleFormat(AV_SAMPLE_FMT_S16)
 {
@@ -51,21 +51,11 @@ int CMediaDecoder::getSampleRate()
     return audioSampleRate;
 }
 
-void CMediaDecoder::setDataSource(const char* url)
+int CMediaDecoder::prepare(const char* url)
 {
-    if(this->url) {
-        delete this->url;
-    }
+    m_url = url;
 
-    this->url = new char[strlen(url) + 1];
-    strcpy(this->url, url);
-
-    return;
-}
-
-int CMediaDecoder::prepare()
-{
-    int ret = avformat_open_input(&inputFormatContext, url, NULL, NULL);
+    int ret = avformat_open_input(&inputFormatContext, m_url.c_str(), NULL, NULL);
     if(ret < 0) {
         av_log(NULL, AV_LOG_ERROR, "avformat_open_input error!\n");
         return ret;
@@ -136,7 +126,7 @@ int CMediaDecoder::initCodec()
             audioIndex = i;
         }
 
-        av_dump_format(inputFormatContext, i, url, 0);
+        av_dump_format(inputFormatContext, i, m_url.c_str(), 0);
     }
 
     av_log(NULL, AV_LOG_DEBUG, "videoIndex %d audioIndex %d\n", videoIndex, audioIndex);
