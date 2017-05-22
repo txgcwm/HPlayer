@@ -99,7 +99,7 @@ int main(int argc, char **argv)
                 AVFrame* outFrame = decoder.convertVideoFrame(frame);
                 av_log(NULL, AV_LOG_DEBUG, "pkt pts %ld\n", pkt->pts);
                 sdl.setBuffer(outFrame->data[0], outFrame->linesize[0]);
-                //sdl.setBuffer(frame->data[0], frame->linesize[0]);
+
                 if(lastVideoFrameTime == -1) {
                     sdl.showFrame(0);
                     lastVideoFrameTime = getCurMs();
@@ -133,8 +133,6 @@ int main(int argc, char **argv)
                     AVFrame *outFrame = av_frame_alloc();
                     int len = decoder.convertAudioFrame(frame, outFrame);
 
-                    // sdl.setBuffer(outFrame->data[0], outFrame->linesize[0]);
-
                     int audioLen = outFrame->linesize[0];
                     Uint8 *audioBuffer = outFrame->data[0];
 
@@ -166,7 +164,6 @@ int main(int argc, char **argv)
         event.type = REFRESH_EVENT;
         SDL_PushEvent(&event);
 
-        // av_free_packet(pkt);
         av_packet_unref(pkt);
     }
     
@@ -174,7 +171,6 @@ int main(int argc, char **argv)
             mediaPktBuffer->getVideoPacketCount(), mediaPktBuffer->getAudioPacketCount());
 
     av_frame_free(&frame);
-    // av_free_packet(pkt);
     av_packet_unref(pkt);
 
     event.type = REFRESH_EVENT;
