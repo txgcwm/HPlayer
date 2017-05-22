@@ -12,43 +12,32 @@ extern "C" {
 
 
 
-class MediaDecoder
+class CMediaDecoder
 {
 public:
-    MediaDecoder();
+    CMediaDecoder();
+
     void setDataSource(const char *url);
     int prepare();
-    int initCodec();
     int getPacket(AVPacket *pkt);
     int getFrame(AVPacket *pkt, AVFrame *frame);
 
-    void setOutVideoWidth(int w);
-    void setOutVideoHeight(int h);
-    void setOutVideoPixFmt(AVPixelFormat fmt);
     AVFrame* convertVideoFrame(AVFrame *src);
-    void initVideoConvert();
+    
     AVRational getVideoTimeBase();
     int getVideoIndex();
-    int getDisPlayWidth();
-    int getDisPlayHeight();
     int getVideoWidth();
     int getVideoHeight();
-    void setDisPlayWidth(int w);
-    void setDisPlayHeight(int h);
-
-    int getAudioIndex();
-    void initAudioConvert();
+    int getAudioIndex(); 
     int convertAudioFrame(AVFrame *src, AVFrame *out);
-    void setOutAudioFormat(AVSampleFormat fmt);
-    void setOutAudioSampleRate(int rate);
-    void setOutAudioLayout(uint64_t layout);
-    void setOutAudioChannels(int channels);
-    uint64_t getAudioLayout();
     int getSampleRate();
-    int getChannels();
-    AVSampleFormat getAudioFormat();
 
     static int64_t getMsByPts(AVRational time_base, int64_t pts);
+
+private:
+    int initCodec();
+    void initAudioConvert();
+    void initVideoConvert();
 
 private:
     bool hasVideo;

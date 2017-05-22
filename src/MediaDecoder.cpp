@@ -3,7 +3,7 @@
 
 // http://blog.csdn.net/luotuo44/article/details/54981809
 
-MediaDecoder::MediaDecoder()
+CMediaDecoder::CMediaDecoder()
 : hasVideo(false)
 , hasAudio(false)
 , videoIndex(-1)
@@ -13,9 +13,12 @@ MediaDecoder::MediaDecoder()
 , displayWidth(-1)
 , displayHeight(-1)
 , inputFormatContext(NULL)
+, outPixFmt(AV_PIX_FMT_YUV420P)
 , swsVideoCtx(NULL)
 , swrAudioCtx(NULL)
 , url(NULL)
+, outChannels(2)
+, outSampleFormat(AV_SAMPLE_FMT_S16)
 {
     av_register_all();
     avdevice_register_all();
@@ -23,108 +26,32 @@ MediaDecoder::MediaDecoder()
     av_log_set_level(AV_LOG_DEBUG);
 }
 
-int MediaDecoder::getVideoWidth()
+int CMediaDecoder::getVideoWidth()
 {
     return videoWidth;
 }
 
-int MediaDecoder::getVideoHeight()
+int CMediaDecoder::getVideoHeight()
 {
     return videoHeight;
 }
 
-int MediaDecoder::getDisPlayWidth()
-{
-    return displayWidth;
-}
-
-int MediaDecoder::getDisPlayHeight()
-{
-    return displayHeight;
-}
-
-void MediaDecoder::setDisPlayWidth(int w)
-{
-    displayWidth = w;
-}
-
-void MediaDecoder::setDisPlayHeight(int h)
-{
-    displayHeight = h;
-}
-
-int MediaDecoder::getVideoIndex()
+int CMediaDecoder::getVideoIndex()
 {
     return videoIndex;
 }
 
-int MediaDecoder::getAudioIndex()
+int CMediaDecoder::getAudioIndex()
 {
     return audioIndex;
 }
 
-void MediaDecoder::setOutVideoWidth(int width)
-{
-    displayWidth = width;
-}
-
-AVSampleFormat MediaDecoder::getAudioFormat()
-{
-    return audioSampleFormat;
-}
-
-int MediaDecoder::getSampleRate()
+int CMediaDecoder::getSampleRate()
 {
     return audioSampleRate;
 }
 
-uint64_t MediaDecoder::getAudioLayout()
-{
-    return audioLayout;
-}
-
-int MediaDecoder::getChannels()
-{
-    return audioChannels;
-}
-
-void MediaDecoder::setOutVideoHeight(int height)
-{
-    displayHeight = height;
-}
-
-void MediaDecoder::setOutAudioSampleRate(int rate)
-{
-    outSampleRate = rate;
-}
-
-void MediaDecoder::setOutAudioFormat(AVSampleFormat fmt)
-{
-    outSampleFormat = fmt;
-}
-
-void MediaDecoder::setOutAudioChannels(int ch)
-{
-    outChannels = ch;
-}
-
-void MediaDecoder::setOutAudioLayout(uint64_t layout)
-{
-    outLayout = layout;
-}
-
-void MediaDecoder::setOutVideoPixFmt(AVPixelFormat fmt)
-{
-    outPixFmt = fmt;
-
-    if(outPixFmt == videoPixFmt) {
-        av_log(NULL, AV_LOG_DEBUG, "outPixFmt == videoPixFmt\n");
-    }
-
-    return;
-}
-
-void MediaDecoder::setDataSource(const char* url)
+void CMediaDecoder::setDataSource(const char* url)
 {
     if(this->url) {
         delete this->url;
@@ -136,7 +63,7 @@ void MediaDecoder::setDataSource(const char* url)
     return;
 }
 
-int MediaDecoder::prepare()
+int CMediaDecoder::prepare()
 {
     int ret = avformat_open_input(&inputFormatContext, url, NULL, NULL);
     if(ret < 0) {
@@ -150,19 +77,29 @@ int MediaDecoder::prepare()
         return -1;
     }
 
-    if(initCodec() >= 0) {
+    if(initCodec() <= 0) {
+        av_log(NULL, AV_LOG_ERROR, "init codec error!\n");
         return ret;
     }
 
-    return -1;
+    displayWidth = videoWidth;
+    displayHeight = videoHeight;
+
+    outSampleRate = audioSampleRate;
+    outLayout = av_get_default_channel_layout(outChannels);
+
+    initVideoConvert();
+    initAudioConvert();
+
+    return 0;
 }
 
-AVRational MediaDecoder::getVideoTimeBase()
+AVRational CMediaDecoder::getVideoTimeBase()
 {
     return videoTimeBase;
 }
 
-int MediaDecoder::initCodec()
+int CMediaDecoder::initCodec()
 {
     int ret = 0;
 
@@ -207,12 +144,12 @@ int MediaDecoder::initCodec()
     return 1;
 }
 
-int64_t MediaDecoder::getMsByPts(AVRational time_base, int64_t pts)
+int64_t CMediaDecoder::getMsByPts(AVRational time_base, int64_t pts)
 {
     return av_rescale_q(pts, time_base, AV_TIME_BASE_Q)/1000;
 }
 
-int MediaDecoder::getPacket(AVPacket *pkt)
+int CMediaDecoder::getPacket(AVPacket *pkt)
 {
     int ret = av_read_frame(inputFormatContext, pkt);
     if(ret < 0) {
@@ -224,7 +161,7 @@ int MediaDecoder::getPacket(AVPacket *pkt)
     return ret;
 }
 
-int MediaDecoder::getFrame(AVPacket *pkt, AVFrame *frame)
+int CMediaDecoder::getFrame(AVPacket *pkt, AVFrame *frame)
 {
     int ret = -1;
     int got_frame = 0;
@@ -245,22 +182,26 @@ int MediaDecoder::getFrame(AVPacket *pkt, AVFrame *frame)
     return ret;
 }
 
-void MediaDecoder::initVideoConvert()
+void CMediaDecoder::initVideoConvert()
 {
     if(swsVideoCtx) {
         sws_freeContext(swsVideoCtx);
+        swsVideoCtx = NULL;
     }
 
-    av_log(NULL, AV_LOG_ERROR, "videoWidth %d videoHeight %d displayWidth %d displayHeight %d\n",
+    av_log(NULL, AV_LOG_DEBUG, "videoWidth %d videoHeight %d displayWidth %d displayHeight %d\n",
         videoWidth, videoHeight, displayWidth, displayHeight);
 
     swsVideoCtx = sws_getContext(videoWidth, videoHeight, videoPixFmt, displayWidth, displayHeight,
                                     outPixFmt, SWS_BILINEAR, NULL, NULL, NULL);
+    if(swsVideoCtx == NULL) {
+        av_log(NULL, AV_LOG_ERROR, "sws_getContext error!\n");
+    }
 
     return;
 }
 
-void MediaDecoder::initAudioConvert()
+void CMediaDecoder::initAudioConvert()
 {
     if(swrAudioCtx) {
         swr_free(&swrAudioCtx);
@@ -290,21 +231,29 @@ void MediaDecoder::initAudioConvert()
     return;
 }
 
-AVFrame* MediaDecoder::convertVideoFrame(AVFrame *src)
+AVFrame* CMediaDecoder::convertVideoFrame(AVFrame *src)
 {
+    if(swsVideoCtx == NULL) {
+        av_log(NULL, AV_LOG_ERROR, "swsVideoCtx is null, check it\n");
+        return NULL;
+    }
+
     AVFrame *frame = av_frame_alloc();
     int frameSize = av_image_get_buffer_size(outPixFmt, displayWidth, displayHeight, 1);
     unsigned char* frameData = (unsigned char*)av_malloc(frameSize);
     av_image_fill_arrays(frame->data, frame->linesize, frameData, outPixFmt,
                             displayWidth, displayHeight, 1);
-    sws_scale(swsVideoCtx, src->data, src->linesize, 0, videoHeight, frame->data, frame->linesize);
+    sws_scale(swsVideoCtx, src->data, src->linesize, 0, videoHeight, frame->data, frame->linesize); 
 
     return frame;
 }
 
-int MediaDecoder::convertAudioFrame(AVFrame *src, AVFrame *outFrame)
+int CMediaDecoder::convertAudioFrame(AVFrame *src, AVFrame *outFrame)
 {
-    // unsigned int audioBufferSize;
+    if(swrAudioCtx == NULL) {
+        return -1;
+    }
+
     int audioNbSamples = src->nb_samples;
     int dstNbSample = av_rescale_rnd(swr_get_delay(swrAudioCtx, outSampleRate) + audioNbSamples,
                                         outSampleRate, audioSampleRate, AV_ROUND_UP);

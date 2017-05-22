@@ -39,20 +39,10 @@ static void sdl_fill_audio(void *udata, Uint8 *stream, int len)
 
 int main(int argc, char **argv)
 {
-    int audioChannels = 2;
-    MediaDecoder decoder;
+    CMediaDecoder decoder;
 
     decoder.setDataSource(argv[1]);
     decoder.prepare();
-    decoder.setOutVideoPixFmt(AV_PIX_FMT_YUV420P);
-    decoder.setDisPlayWidth(decoder.getVideoWidth());
-    decoder.setDisPlayHeight(decoder.getVideoHeight());
-    decoder.setOutAudioChannels(audioChannels/**decoder.getChannels()*/);
-    decoder.setOutAudioLayout(av_get_default_channel_layout(audioChannels)/**decoder.getAudioLayout()*/);
-    decoder.setOutAudioFormat(AV_SAMPLE_FMT_S16/**decoder.getAudioFormat()*/);
-    decoder.setOutAudioSampleRate(decoder.getSampleRate());
-    decoder.initVideoConvert();
-    decoder.initAudioConvert();
 
     AVPacket *pkt = (AVPacket *)av_malloc(sizeof(AVPacket));
     AVFrame *frame = av_frame_alloc();
@@ -71,7 +61,7 @@ int main(int argc, char **argv)
     sdl.createWindow();
 
     sdl.setAudioFreq(decoder.getSampleRate());
-    sdl.setAudioChannels(audioChannels);
+    sdl.setAudioChannels(2);
     sdl.setAudioFormat(AUDIO_S16SYS);
     sdl.setAudioSilence(0);
     sdl.setAudioSamples(4096);
@@ -98,6 +88,7 @@ int main(int argc, char **argv)
             if(decoder.getFrame(pkt, frame) > 0) {
                 AVFrame* outFrame = decoder.convertVideoFrame(frame);
                 av_log(NULL, AV_LOG_DEBUG, "pkt pts %ld\n", pkt->pts);
+
                 sdl.setBuffer(outFrame->data[0], outFrame->linesize[0]);
 
                 if(lastVideoFrameTime == -1) {
