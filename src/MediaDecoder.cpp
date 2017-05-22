@@ -1,6 +1,7 @@
 #include "MediaDecoder.h"
 
 
+// http://blog.csdn.net/luotuo44/article/details/54981809
 
 MediaDecoder::MediaDecoder()
 : hasVideo(false)
