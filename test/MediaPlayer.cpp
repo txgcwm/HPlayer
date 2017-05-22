@@ -4,6 +4,8 @@
 #include "MediaBuffer.h"
 #include "FFSDL.h"
 
+
+
 #define REFRESH_EVENT  (SDL_USEREVENT + 1)
 
 Uint8 sdlBuffer[8192 * 2];
@@ -16,14 +18,6 @@ int64_t getCurMs()
     gettimeofday(&start, NULL);
 
     return start.tv_usec/1000 + start.tv_sec*1000;
-}
-
-int64_t getCurUs()
-{
-    struct timeval start;
-    gettimeofday(&start, NULL);
-
-    return start.tv_usec + start.tv_sec*1000*1000;
 }
 
 static void sdl_fill_audio(void *udata, Uint8 *stream, int len)
@@ -101,7 +95,7 @@ int main(int argc, char **argv)
         if(pkt->stream_index == decoder.getVideoIndex()) {
             mediaPktBuffer->enQueueVideoPacket(pkt);
 
-            /*if(decoder.getFrame(pkt, frame) > 0) {
+            if(decoder.getFrame(pkt, frame) > 0) {
                 AVFrame* outFrame = decoder.convertVideoFrame(frame);
                 av_log(NULL, AV_LOG_DEBUG, "pkt pts %ld\n", pkt->pts);
                 sdl.setBuffer(outFrame->data[0], outFrame->linesize[0]);
@@ -127,7 +121,7 @@ int main(int argc, char **argv)
 
                 printf("%d %d %d\n", outFrame->linesize[0], outFrame->linesize[1], outFrame->linesize[2]);
                 av_frame_free(&outFrame);
-            }*/
+            }
         } else if(pkt->stream_index == decoder.getAudioIndex()) {
             mediaPktBuffer->enQueueAudioPacket(pkt);
 

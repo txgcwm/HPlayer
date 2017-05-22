@@ -3,6 +3,8 @@
 
 #include <iostream>
 
+
+
 template<class T>
 class QueueNode
 {
