@@ -28,7 +28,6 @@ public:
     
     bool createWindow();
     void setVideoWidthHeight(int width, int height);
-    void initRect();
     void setBuffer(void* pixels, int pitch);
     void showFrame(int mSec);
     void setAudioFreq(int freq);
@@ -39,17 +38,16 @@ public:
     bool pauseAudio();
 
 private:
-    SDL_Window *window;
-    SDL_Renderer *renderer;
-    SDL_Texture *texture;
-    SDL_Rect rect;
-    int vWidth;
-    int vHeight;
-    void* vPixels;
-    int vPitch;
-    Uint32 vFormat;
-    SDL_AudioSpec wanted_spec;
-    bool isAudioOpen;
+    SDL_Window*     window;
+    SDL_Renderer*   renderer;
+    SDL_Texture*    texture;
+    int             vWidth;
+    int             vHeight;
+    void*           vPixels;
+    int             vPitch;
+    Uint32          vFormat;
+    SDL_AudioSpec   wanted_spec;
+    bool            isAudioOpen;
 };
 
 #endif

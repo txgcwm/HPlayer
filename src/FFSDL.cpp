@@ -61,8 +61,6 @@ bool SDL::createWindow()
         return false;
     }
 
-    initRect();
-
     texture = SDL_CreateTexture(renderer, vFormat, SDL_TEXTUREACCESS_STREAMING, vWidth, vHeight);
     if(texture == NULL) {
         SDL_Log("create texture error: %s!\n", SDL_GetError());
@@ -160,14 +158,6 @@ void SDL::setAudioCallBack(SDL_AudioCallback callback)
 void SDL::setAudioUserData(void *userdata)
 {
     wanted_spec.userdata = userdata;
-}
-
-void SDL::initRect()
-{
-    rect.x = 0;
-    rect.y = 0;
-    rect.w = vWidth;
-    rect.h = vHeight;
 }
 
 void SDL::setBuffer(void* pixels, int pitch)
