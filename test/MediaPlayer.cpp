@@ -56,13 +56,9 @@ int main(int argc, char **argv)
     int64_t lastVideoFramePts = -1;
 
     sdl.setVideoWidthHeight(decoder.getVideoWidth(), decoder.getVideoHeight());
-    sdl.setVideoPixFormat(SDL_PIXELFORMAT_IYUV);
     sdl.createWindow();
 
     sdl.setAudioFreq(decoder.getSampleRate());
-    sdl.setAudioChannels(2);
-    sdl.setAudioFormat(AUDIO_S16SYS);
-    sdl.setAudioSilence(0);
     sdl.setAudioSamples(4096);
     sdl.setAudioCallBack(sdl_fill_audio);
 

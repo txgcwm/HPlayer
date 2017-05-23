@@ -31,6 +31,10 @@ SDL::SDL(Uint32 flags) throw(InitError)
     }
 
     SDL_memset(&wanted_spec, 0, sizeof(wanted_spec));
+
+    wanted_spec.channels = 2;
+    wanted_spec.silence = 0;
+    wanted_spec.format = AUDIO_S16SYS;
 }
 
 SDL::~SDL()
@@ -96,14 +100,11 @@ void SDL::setVideoWidthHeight(int width, int height)
     vWidth = width;
     vHeight = height;
 
+    vFormat = SDL_PIXELFORMAT_IYUV;
+
     SDL_Log("width(%d), height(%d)\n", width, height);
 
     return;
-}
-
-void SDL::setVideoPixFormat(Uint32 format)
-{
-    vFormat = format;
 }
 
 bool SDL::playAudio()
@@ -144,21 +145,6 @@ bool SDL::pauseAudio()
 void SDL::setAudioFreq(int freq)
 {
     wanted_spec.freq = freq;
-}
-
-void SDL::setAudioFormat(SDL_AudioFormat fmt)
-{
-    wanted_spec.format = fmt;
-}
-
-void SDL::setAudioChannels(int channels)
-{
-    wanted_spec.channels = channels;
-}
-
-void SDL::setAudioSilence(int silence)
-{
-    wanted_spec.silence = silence;
 }
 
 void SDL::setAudioSamples(int samples)

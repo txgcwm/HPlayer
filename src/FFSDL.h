@@ -28,14 +28,10 @@ public:
     
     bool createWindow();
     void setVideoWidthHeight(int width, int height);
-    void setVideoPixFormat(Uint32 format);
     void initRect();
     void setBuffer(void* pixels, int pitch);
     void showFrame(int mSec);
     void setAudioFreq(int freq);
-    void setAudioFormat(SDL_AudioFormat);
-    void setAudioChannels(int channels);
-    void setAudioSilence(int silence);
     void setAudioSamples(int samples);
     void setAudioUserData(void* userdata);
     void setAudioCallBack(SDL_AudioCallback callBack);
