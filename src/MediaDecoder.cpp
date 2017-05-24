@@ -94,6 +94,46 @@ int CMediaDecoder::initCodec()
     int ret = 0;
 
     for(int i = 0; i < inputFormatContext->nb_streams; i++) {
+#if 0
+        AVStream *inStream = inputFormatContext->streams[i];
+        AVCodec *dec = avcodec_find_decoder(inStream->codecpar->codec_id);
+        if(dec == NULL) {
+            av_log(NULL, AV_LOG_ERROR, "avcodec_find_decoder find error %d\n", __LINE__);
+            return -1;
+        }
+
+        //需要使用avcodec_free_context释放
+        AVCodecContext *dec_ctx = avcodec_alloc_context3(dec);
+
+        // 事实上codecpar包含了大部分解码器相关的信息，这里是直接从AVCodecParameters复制到AVCodecContext
+        avcodec_parameters_to_context(dec_ctx, inStream->codecpar);
+
+        ret = avcodec_open2(dec_ctx, dec, NULL);
+        if(ret < 0) {
+            av_log(NULL, AV_LOG_ERROR, "avcodec_open2 err in line %d\n", __LINE__);
+            return -1;
+        }
+
+        if(inStream->codec->codec_type == AVMEDIA_TYPE_VIDEO) {
+            hasVideo = true;
+            videoIndex = i;
+            videoWidth = dec_ctx->width;
+            videoHeight = dec_ctx->height;
+            videoPixFmt = dec_ctx->pix_fmt;
+            videoTimeBase = inStream->time_base;
+        } else if(inStream->codec->codec_type == AVMEDIA_TYPE_AUDIO) {
+            audioSampleRate = dec_ctx->sample_rate;
+            audioChannels = dec_ctx->channels;
+            audioSampleFormat = dec_ctx->sample_fmt;
+            audioLayout = dec_ctx->channel_layout;
+            hasAudio = true;
+            audioIndex = i;
+        }
+
+        av_dump_format(inputFormatContext, i, m_url.c_str(), 0);
+
+        avcodec_free_context(&dec_ctx);
+#else
         AVStream *inStream = inputFormatContext->streams[i];
         AVCodec *dec = NULL;
         AVCodecContext *dec_ctx = inStream->codec;
@@ -127,6 +167,7 @@ int CMediaDecoder::initCodec()
         }
 
         av_dump_format(inputFormatContext, i, m_url.c_str(), 0);
+#endif
     }
 
     av_log(NULL, AV_LOG_DEBUG, "videoIndex %d audioIndex %d\n", videoIndex, audioIndex);
